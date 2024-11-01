@@ -1,7 +1,8 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { getAuthToken } from "../utils/memberUtil";
 
 const ProtectedRoute = () => {
-  const token = localStorage.getItem("authToken");
+  const token = getAuthToken();
   const location = useLocation();
 
   return token ? (

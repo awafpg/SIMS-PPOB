@@ -5,8 +5,19 @@ import {
   NavbarContent,
   NavbarItem,
 } from "@nextui-org/react";
+import { useLocation } from "react-router-dom";
 
 const Header = () => {
+  const location = useLocation();
+  const match = (item) => {
+    if (location.pathname === item.path) return true;
+    else return false;
+  };
+  const navItem = [
+    { path: "/top-up", linkName: "Top UP" },
+    { path: "/transaction", linkName: "Transaction" },
+    { path: "/account", linkName: "Akun" },
+  ];
   return (
     <>
       <Navbar>
@@ -17,19 +28,21 @@ const Header = () => {
           </a>
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-4" justify="center">
-          <NavbarItem>
-            <Link color="foreground" href="top-up">
-              Top Up
-            </Link>
-          </NavbarItem>
-          <NavbarItem isActive>
-            <Link href="transaction">Transaction</Link>
-          </NavbarItem>
-          <NavbarItem>
-            <Link color="foreground" href="account">
-              Akun
-            </Link>
-          </NavbarItem>
+          {navItem.map((item, index) => {
+            return (
+              <NavbarItem key={index} isActive={match(item)}>
+                <Link
+                  className={` font-roboto ${
+                    match(item) ? "text-red-500 font-bold" : "text-inherit"
+                  }`}
+                  color="foreground"
+                  href={item.path}
+                >
+                  {item.linkName}
+                </Link>
+              </NavbarItem>
+            );
+          })}
         </NavbarContent>
       </Navbar>
     </>

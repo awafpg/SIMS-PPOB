@@ -1,5 +1,5 @@
 import { Input } from "@nextui-org/react";
-import axios from "axios";
+
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +32,6 @@ const RegisterForm = () => {
       const token = response.data.token;
       const status = response.data.status;
       const user = response.data.user;
-      console.log("🚀 ~ handleLogin ~ user:", user);
 
       if (status === "success") {
         localStorage.setItem("authToken", token);

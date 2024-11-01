@@ -4,7 +4,7 @@ import { Button } from "@nextui-org/react";
 const Error404 = () => {
   const navigate = useNavigate();
   const handleNavigate = () => {
-    navigate("/login");
+    navigate("/profile");
     // if (token) {
     //   if (user.role === "admin") {
     //     navigate("/dashboard-admin");

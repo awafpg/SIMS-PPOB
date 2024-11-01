@@ -1,192 +1,174 @@
 import { Input } from "@nextui-org/react";
-import axios from "axios";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+// import Swal from "sweetalert2";
 import { MdLockOpen, MdOutlineAlternateEmail } from "react-icons/md";
+import { store } from "../../Store/store";
+import { getAuthToken, setAuthToken } from "../../utils/memberUtil";
+import { useLoginMutation } from "../../Store/membership/membershipReducer";
+import { z } from "zod";
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [loginState, setLoginState] = useState({
-    email: "",
-    password: "",
-    passwordVisible: false,
+  const userRef = useRef();
+  const errRef = useRef();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errMsg, setErrMsg] = useState("");
+
+  const loginScheme = z.object({
+    email: z.string().email(),
+    password: z.string().min(4),
   });
+
+  const isValidEmail = (email) => {
+    try {
+      loginScheme.shape.email.parse(email);
+      return true;
+    } catch (error) {
+      if (error) return false;
+    }
+  };
+  const isValidPassword = (password) => {
+    try {
+      loginScheme.shape.password.parse(password);
+      return true;
+    } catch (error) {
+      if (error) return false;
+    }
+  };
+  const [login, { isLoading }] = useLoginMutation();
+
+  useEffect(() => {
+    userRef.current.focus();
+  }, []);
+
+  useEffect(() => {
+    getAuthToken();
+    setErrMsg("");
+  }, [password, email]);
 
   const toRegister = () => {
     navigate("/register");
   };
-  const handleLogin = async (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const response = await axios.post(
-        "https://api-resep-three.vercel.app/api/v1/auth/login",
-        {
-          email: loginState.email,
-          password: loginState.password,
-        }
-      );
-      const role = response.data.user.role;
-      const token = response.data.token;
-      const status = response.data.status;
-      const user = response.data.user;
-      console.log("🚀 ~ handleLogin ~ user:", user);
+      const loginData = await login({ email, password }).unwrap();
 
-      if (status === "success") {
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("dataUser", JSON.stringify(user));
-
-        dispatch({
-          type: "LOGIN",
-          payload: token,
-        });
-        dispatch({
-          type: "MASUK",
-          payload: JSON.stringify(user),
-        });
-
-        Swal.fire({
-          title: "Confirmation",
-          text: `Hello Selamat Datang`,
-          icon: "success",
-          confirmButtonText: "OK",
-          confirmButtonColor: "rgb(3 150 199)",
-        }).then((res) => {
-          if (res.isConfirmed) {
-            if (role === "admin") {
-              navigate("/dashboard-admin");
-            } else if (role === "user") {
-              navigate("/homepage-user");
-            }
-          }
-        });
-      } else {
-        handleLoginError("Email atau password salah");
-      }
+      setAuthToken(loginData.data.token);
+      setEmail("");
+      setPassword("");
+      navigate("/profile");
     } catch (error) {
-      console.error("Terjadi kesalahan saat login:", error);
-      handleLoginError("Login gagal. Silakan coba lagi.");
+      if (!error) {
+        setErrMsg("no server response");
+      } else if (error?.status === 400) {
+        setErrMsg("wrong username or password");
+      } else if (error?.status === 401) {
+        setErrMsg("unauthorized");
+      } else {
+        setErrMsg("Login failed");
+      }
     }
   };
-  const handleLoginError = (error) => {
-    if (error.message === "Network Error") {
-      Swal.fire({
-        title: "Warning",
-        text: "Tidak terkoneksi ke database",
-        icon: "error",
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        confirmButtonColor: "rgb(255 10 10)",
-      });
-    } else if (
-      error.response &&
-      error.response.data.message === "record not found, invalid email"
-    ) {
-      Swal.fire({
-        title: "Warning",
-        text: "Anda Belum Punya akun, Anda harus registrasi dulu",
-        icon: "error",
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        confirmButtonColor: "rgb(255 10 10)",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          navigate("/register");
-        }
-      });
-    } else {
-      Swal.fire({
-        title: "Confirmation",
-        text: "Password anda Salah",
-        icon: "error",
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        confirmButtonColor: "rgb(255 10 10)",
-      }).then(() => {
-        setLoginState({
-          email: "",
-          password: "",
-          passwordVisible: false,
-        });
-      });
-    }
+  const handleUserInput = (e) => {
+    setEmail(e.target.value);
   };
+  const handlePwdInput = (e) => setPassword(e.target.value);
+  const validEmail = isValidEmail(email);
+  const validPassword = isValidPassword(password);
+
   return (
-    <div className="p-20 max-sm:p-8">
-      <form onSubmit={handleLogin} id="login-form">
-        <div className="flex flex-col justify-center items-center gap-5">
-          <span
-            className="font-bold text-[1.3rem] mt-5 font-['Poppins']"
-            id="sign-in-heading"
+    <>
+      {isLoading ? (
+        <h1>Loading</h1>
+      ) : (
+        <div className="p-20 max-sm:p-8">
+          <p
+            ref={errRef}
+            className={errMsg ? "errmsg" : "offscreen"}
+            aria-live="assertive"
           >
-            <div className="flex gap-2">
-              <img src="/src/assets/Website Assets/Logo.png" alt="" />
-              <p>SIMS PPOB</p>
-            </div>
-          </span>
-          <span
-            className="font-bold text-center text-[2rem] mb-5 font-['Poppins']"
-            id="sign-in-heading"
-          >
-            Masuk atau buat akun untuk memulai
-          </span>
-          <Input
-            id="email-input"
-            className="w-10/12 rounded-xl border-2"
-            type="email"
-            required
-            value={loginState.email}
-            onChange={(e) =>
-              setLoginState((prev) => ({ ...prev, email: e.target.value }))
-            }
-            placeholder="masukan Email aAnda"
-            labelPlacement="inside"
-            startContent={
-              <MdOutlineAlternateEmail className="text-xl text-default-400 pointer-events-none flex-shrink-0" />
-            }
-          />
-          <Input
-            id="email-input"
-            className="w-10/12 rounded-xl border-2"
-            required
-            value={loginState.password}
-            onChange={(e) =>
-              setLoginState((prev) => ({ ...prev, password: e.target.value }))
-            }
-            type="password"
-            placeholder="masukan Password Anda"
-            labelPlacement="inside"
-            startContent={
-              <MdLockOpen className="text-xl text-default-400 pointer-events-none flex-shrink-0" />
-            }
-          />
-          <div className="flex w-10/12 flex-col items-center gap-9">
-            <button
-              type="submit"
-              className=" py-3 w-full rounded-md text-white font-bold font-['Poppins'] bg-[#f43424] hover:opacity-70"
-              id="sign-in-button"
-            >
-              Masuk
-            </button>
-            <span
-              className="text-black flex justify-center mt-1"
-              id="no-account-message"
-            >
-              Belum punya akun? registrasi
+            {errMsg}
+          </p>
+          <form onSubmit={handleSubmit} id="login-form">
+            <div className="flex flex-col justify-center items-center gap-5">
               <span
-                onClick={toRegister}
-                className="cursor-pointer underline ml-1 text-[#f43424]"
-                id="register-link"
+                className="font-bold text-[1.3rem] mt-5 font-['Poppins']"
+                id="sign-in-heading"
               >
-                di sini
+                <div className="flex gap-2">
+                  <img src="/src/assets/Website Assets/Logo.png" alt="" />
+                  <p>SIMS PPOB</p>
+                </div>
               </span>
-            </span>
-          </div>
+              <span
+                className="font-bold text-center text-[2rem] mb-5 font-['Poppins']"
+                id="sign-in-heading"
+              >
+                Masuk atau buat akun untuk memulai
+              </span>
+              <Input
+                id="email"
+                className="w-10/12 rounded-xl border-2"
+                type="email"
+                required
+                value={email}
+                ref={userRef}
+                isInvalid={!validEmail}
+                errorMessage="Silahkan masukan Email yang valid"
+                onChange={handleUserInput}
+                placeholder="masukan Email aAnda"
+                labelPlacement="inside"
+                startContent={
+                  <MdOutlineAlternateEmail className="text-xl text-default-400 pointer-events-none flex-shrink-0" />
+                }
+              />
+              <Input
+                id="password"
+                className="w-10/12 rounded-xl border-2"
+                required
+                value={password}
+                isInvalid={!validPassword}
+                errorMessage="masukan minimal 4 karakter"
+                onChange={handlePwdInput}
+                type="password"
+                placeholder="masukan Password Anda"
+                labelPlacement="inside"
+                startContent={
+                  <MdLockOpen className="text-xl text-default-400 pointer-events-none flex-shrink-0" />
+                }
+              />
+              <div className="flex w-10/12 flex-col items-center gap-9">
+                <button
+                  type="submit"
+                  className=" py-3 w-full rounded-md text-white font-bold font-['Poppins'] bg-[#f43424] hover:opacity-70"
+                  id="sign-in-button"
+                >
+                  Masuk
+                </button>
+                <span
+                  className="text-black flex justify-center mt-1"
+                  id="no-account-message"
+                >
+                  Belum punya akun? registrasi
+                  <span
+                    onClick={toRegister}
+                    className="cursor-pointer underline ml-1 text-[#f43424]"
+                    id="register-link"
+                  >
+                    di sini
+                  </span>
+                </span>
+              </div>
+            </div>
+          </form>
         </div>
-      </form>
-    </div>
+      )}
+    </>
   );
 };
 
