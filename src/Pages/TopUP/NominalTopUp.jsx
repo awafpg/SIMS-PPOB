@@ -2,10 +2,12 @@ import { Button, Input } from "@nextui-org/react";
 import { useState } from "react";
 import { BsCash } from "react-icons/bs";
 import { useTopupMutation } from "../../Store/transaction/transactionReducer";
+import { useNavigate } from "react-router-dom";
 
 export const NominalTopUp = () => {
   const [topUP, { isLoading }] = useTopupMutation();
   const [topUpAmount, setTopUpAmount] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setTopUpAmount(e.target.value);
@@ -27,6 +29,7 @@ export const NominalTopUp = () => {
     }
     // Reset the input field after submission
     setTopUpAmount("");
+    navigate("/profile");
   };
 
   const nominalButton = [
