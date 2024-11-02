@@ -1,9 +1,7 @@
 import { Input } from "@nextui-org/react";
 
 import { useState } from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 import { MdLockOpen, MdOutlineAlternateEmail, MdPerson } from "react-icons/md";
 import { useRegisterMutation } from "../../Store/membership/membershipReducer";
 import { z } from "zod";
@@ -13,7 +11,6 @@ import { FaEyeSlash } from "react-icons/fa";
 const RegisterForm = () => {
   const [register, { isLoading }] = useRegisterMutation();
   const navigate = useNavigate();
-  const [ErrorMsg, setErrorMsg] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     first_name: "",
@@ -75,15 +72,6 @@ const RegisterForm = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-
-    if (e.target.name === "confirmPassword" || e.target.name === "password") {
-      setErrorMsg(
-        e.target.name === "confirmPassword" &&
-          formData.password !== e.target.value
-          ? "Passwords do not match"
-          : ""
-      );
-    }
   };
 
   const handleSubmit = async (e) => {

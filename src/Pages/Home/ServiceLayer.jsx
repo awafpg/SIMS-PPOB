@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useServiceMutation } from "../../Store/information/informationReducer";
 import { setDataService } from "../../Store/transaction/transactionSlice";
 import { useDispatch } from "react-redux";

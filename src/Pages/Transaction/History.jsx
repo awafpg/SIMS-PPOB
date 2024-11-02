@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useHistoryQuery } from "../../Store/transaction/transactionReducer";
 import { Spinner } from "@nextui-org/react";
-import { div } from "framer-motion/client";
 
 export const History = () => {
   const formatDate = (dateString) => {
