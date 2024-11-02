@@ -21,10 +21,10 @@ const Header = () => {
     <>
       <Navbar>
         <NavbarBrand>
-          <a to="/profile" className="flex items-center">
+          <Link to="/profile" className="flex items-center">
             <img src="/Logo.png" className="w-[25px]" />
             <p className="pl-1 text-sm font-bold text-inherit">SIMS PPOB</p>
-          </a>
+          </Link>
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-4" justify="center">
           {navItem.map((item, index) => {

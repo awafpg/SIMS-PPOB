@@ -5,116 +5,107 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { MdLockOpen, MdOutlineAlternateEmail, MdPerson } from "react-icons/md";
+import { useRegisterMutation } from "../../Store/membership/membershipReducer";
+import { z } from "zod";
+import { BsEyeFill } from "react-icons/bs";
+import { FaEyeSlash } from "react-icons/fa";
 
 const RegisterForm = () => {
+  const [register, { isLoading }] = useRegisterMutation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [loginState, setLoginState] = useState({
+  const [ErrorMsg, setErrorMsg] = useState("");
+  const [formData, setFormData] = useState({
     email: "",
+    first_name: "",
+    last_name: "",
     password: "",
-    passwordVisible: false,
+    confirmPassword: "",
   });
+  const [isVisible, setIsVisible] = useState(false);
+
+  const toggleVisibility = () => setIsVisible(!isVisible);
+
+  const registerScheme = z.object({
+    email: z.string().email(),
+    password: z.string().min(4),
+    confirmPassword: z.string().min(4),
+  });
+
+  const isValidEmail = (email) => {
+    try {
+      registerScheme.shape.email.parse(email);
+      return true;
+    } catch (error) {
+      if (error) return false;
+    }
+  };
+  const isValidPassword = (password) => {
+    try {
+      registerScheme.shape.password.parse(password);
+      return true;
+    } catch (error) {
+      if (error) return false;
+    }
+  };
+  // const isValidConfirmPassword = (confirmPassword) => {
+  //   try {
+  //     registerScheme.shape.confirmPassword.parse(confirmPassword);
+  //     return true;
+  //   } catch (error) {
+  //     if (error) return false;
+  //   }
+  // };
+  const isValidConfirmPassword = (password, confirmPassword) => {
+    if (password === confirmPassword) return true;
+    else return false;
+  };
+  const validEmail = isValidEmail(formData.email);
+  const validPassword = isValidPassword(formData.password);
+  const validConfirmPassword = isValidConfirmPassword(
+    formData.password,
+    formData.confirmPassword
+  );
 
   const toLogin = () => {
     navigate("/login");
   };
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post(
-        "https://api-resep-three.vercel.app/api/v1/auth/login",
-        {
-          email: loginState.email,
-          password: loginState.password,
-        }
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+
+    if (e.target.name === "confirmPassword" || e.target.name === "password") {
+      setErrorMsg(
+        e.target.name === "confirmPassword" &&
+          formData.password !== e.target.value
+          ? "Passwords do not match"
+          : ""
       );
-      const role = response.data.user.role;
-      const token = response.data.token;
-      const status = response.data.status;
-      const user = response.data.user;
+    }
+  };
 
-      if (status === "success") {
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("dataUser", JSON.stringify(user));
-
-        dispatch({
-          type: "LOGIN",
-          payload: token,
-        });
-        dispatch({
-          type: "MASUK",
-          payload: JSON.stringify(user),
-        });
-
-        Swal.fire({
-          title: "Confirmation",
-          text: `Hello Selamat Datang`,
-          icon: "success",
-          confirmButtonText: "OK",
-          confirmButtonColor: "rgb(3 150 199)",
-        }).then((res) => {
-          if (res.isConfirmed) {
-            if (role === "admin") {
-              navigate("/dashboard-admin");
-            } else if (role === "user") {
-              navigate("/homepage-user");
-            }
-          }
-        });
-      } else {
-        handleLoginError("Email atau password salah");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log(formData);
+    try {
+      const result = await register({ ...formData }).unwrap();
+      console.log(result);
+      if (result.status == 0) {
+        navigate("/login");
       }
     } catch (error) {
-      console.error("Terjadi kesalahan saat login:", error);
-      handleLoginError("Login gagal. Silakan coba lagi.");
+      console.log(error);
+      alert(error.data.message);
     }
+
+    // Here you can add form submission logic, such as sending data to an API
   };
-  const handleLoginError = (error) => {
-    if (error.message === "Network Error") {
-      Swal.fire({
-        title: "Warning",
-        text: "Tidak terkoneksi ke database",
-        icon: "error",
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        confirmButtonColor: "rgb(255 10 10)",
-      });
-    } else if (
-      error.response &&
-      error.response.data.message === "record not found, invalid email"
-    ) {
-      Swal.fire({
-        title: "Warning",
-        text: "Anda Belum Punya akun, Anda harus registrasi dulu",
-        icon: "error",
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        confirmButtonColor: "rgb(255 10 10)",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          navigate("/register");
-        }
-      });
-    } else {
-      Swal.fire({
-        title: "Confirmation",
-        text: "Password anda Salah",
-        icon: "error",
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        confirmButtonColor: "rgb(255 10 10)",
-      }).then(() => {
-        setLoginState({
-          email: "",
-          password: "",
-          passwordVisible: false,
-        });
-      });
-    }
-  };
+
   return (
     <div className="p-10 max-sm:p-8">
-      <form onSubmit={handleLogin} id="login-form">
+      <form onSubmit={handleSubmit}>
         <div className="flex flex-col justify-center items-center gap-5">
           <span
             className="font-bold text-[1.3rem] font-['Poppins']"
@@ -132,14 +123,17 @@ const RegisterForm = () => {
             Lengkapi data untuk membuat Akun
           </span>
           <Input
-            id="email-input"
             className="w-10/12 rounded-xl border-2"
-            type="email"
+            clearable
             required
-            value={loginState.email}
-            onChange={(e) =>
-              setLoginState((prev) => ({ ...prev, email: e.target.value }))
-            }
+            fullWidth
+            label="Email"
+            name="email"
+            type="email"
+            isInvalid={!validEmail}
+            errorMessage="masukan Email yang Valid"
+            value={formData.email}
+            onChange={handleChange}
             placeholder="masukan Email aAnda"
             labelPlacement="inside"
             startContent={
@@ -147,14 +141,15 @@ const RegisterForm = () => {
             }
           />
           <Input
-            id="email-input"
             className="w-10/12 rounded-xl border-2"
-            type="email"
+            clearable
+            label="First Name"
+            name="first_name"
+            type="text"
+            value={formData.first_name}
+            onChange={handleChange}
             required
-            value={loginState.email}
-            onChange={(e) =>
-              setLoginState((prev) => ({ ...prev, email: e.target.value }))
-            }
+            fullWidth
             placeholder="Nama Depan"
             labelPlacement="inside"
             startContent={
@@ -162,14 +157,15 @@ const RegisterForm = () => {
             }
           />
           <Input
-            id="email-input"
             className="w-10/12 rounded-xl border-2"
-            type="email"
+            clearable
+            label="Last Name"
+            name="last_name"
+            type="text"
+            value={formData.last_name}
+            onChange={handleChange}
             required
-            value={loginState.email}
-            onChange={(e) =>
-              setLoginState((prev) => ({ ...prev, email: e.target.value }))
-            }
+            fullWidth
             placeholder="Nama Belakang"
             labelPlacement="inside"
             startContent={
@@ -177,34 +173,69 @@ const RegisterForm = () => {
             }
           />
           <Input
-            id="password-input"
             className="w-10/12 rounded-xl border-2"
+            clearable
+            label="Password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            isInvalid={!validPassword}
+            errorMessage="masukan minimal 4 karakter"
             required
-            value={loginState.password}
-            onChange={(e) =>
-              setLoginState((prev) => ({ ...prev, password: e.target.value }))
-            }
-            type="password"
+            fullWidth
             placeholder="Buat Password"
             labelPlacement="inside"
             startContent={
               <MdLockOpen className="text-xl text-default-400 pointer-events-none flex-shrink-0" />
             }
+            endContent={
+              <button
+                className="focus:outline-none"
+                type="button"
+                onClick={toggleVisibility}
+                aria-label="toggle password visibility"
+              >
+                {isVisible ? (
+                  <FaEyeSlash className="text-2xl text-default-400 pointer-events-none" />
+                ) : (
+                  <BsEyeFill className="text-2xl text-default-400 pointer-events-none" />
+                )}
+              </button>
+            }
+            type={isVisible ? "text" : "password"}
           />
           <Input
             id="password-input"
             className="w-10/12 rounded-xl border-2"
+            clearable
+            label="Confirm Password"
+            name="confirmPassword"
+            isInvalid={!validConfirmPassword}
+            errorMessage="Password tidak Cocok"
+            value={formData.confirmPassword}
+            onChange={handleChange}
             required
-            value={loginState.password}
-            onChange={(e) =>
-              setLoginState((prev) => ({ ...prev, password: e.target.value }))
-            }
-            type="password"
+            fullWidth
             placeholder="Konfirmasi Password"
             labelPlacement="inside"
             startContent={
               <MdLockOpen className="text-xl text-default-400 pointer-events-none flex-shrink-0" />
             }
+            endContent={
+              <button
+                className="focus:outline-none"
+                type="button"
+                onClick={toggleVisibility}
+                aria-label="toggle password visibility"
+              >
+                {isVisible ? (
+                  <FaEyeSlash className="text-2xl text-default-400 pointer-events-none" />
+                ) : (
+                  <BsEyeFill className="text-2xl text-default-400 pointer-events-none" />
+                )}
+              </button>
+            }
+            type={isVisible ? "text" : "password"}
           />
           <div className="flex w-10/12 flex-col items-center gap-9">
             <button

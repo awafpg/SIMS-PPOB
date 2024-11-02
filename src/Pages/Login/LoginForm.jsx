@@ -7,6 +7,8 @@ import { store } from "../../Store/store";
 import { getAuthToken, setAuthToken } from "../../utils/memberUtil";
 import { useLoginMutation } from "../../Store/membership/membershipReducer";
 import { z } from "zod";
+import { FaEyeSlash } from "react-icons/fa";
+import { BsEyeFill } from "react-icons/bs";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -15,6 +17,9 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errMsg, setErrMsg] = useState("");
+  const [isVisible, setIsVisible] = useState(false);
+
+  const toggleVisibility = () => setIsVisible(!isVisible);
 
   const loginScheme = z.object({
     email: z.string().email(),
@@ -136,12 +141,26 @@ const LoginForm = () => {
                 isInvalid={!validPassword}
                 errorMessage="masukan minimal 4 karakter"
                 onChange={handlePwdInput}
-                type="password"
                 placeholder="masukan Password Anda"
                 labelPlacement="inside"
                 startContent={
                   <MdLockOpen className="text-xl text-default-400 pointer-events-none flex-shrink-0" />
                 }
+                endContent={
+                  <button
+                    className="focus:outline-none"
+                    type="button"
+                    onClick={toggleVisibility}
+                    aria-label="toggle password visibility"
+                  >
+                    {isVisible ? (
+                      <FaEyeSlash className="text-2xl text-default-400 pointer-events-none" />
+                    ) : (
+                      <BsEyeFill className="text-2xl text-default-400 pointer-events-none" />
+                    )}
+                  </button>
+                }
+                type={isVisible ? "text" : "password"}
               />
               <div className="flex w-10/12 flex-col items-center gap-9">
                 <button
