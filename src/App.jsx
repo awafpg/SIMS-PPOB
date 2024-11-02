@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./Pages/Login/LoginPage";
 import HomePage from "./Pages/Home/HomePage";
 import Error404 from "./Pages/ErrorPage/Error404";
@@ -21,14 +21,15 @@ function App() {
           {/* public routes */}
           {/* Larangan akses yang sudah Login */}
           <Route element={<PublicRoute />}>
-            <Route index element={<LoginPage />} path="/login" />
+            <Route index element={<Navigate to="/login" replace />} />
+            <Route element={<LoginPage />} path="/login" />
             <Route element={<RegisterPage />} path="/register" />
           </Route>
 
           {/* protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<LayoutUser />}>
-              <Route index element={<HomePage />} path="/profile" />
+              <Route element={<HomePage />} path="/profile" />
               <Route element={<TopUpPage />} path="/top-up" />
               <Route element={<TransactionHistory />} path="/transaction" />
               <Route element={<TransactionPage />} path="/payment" />

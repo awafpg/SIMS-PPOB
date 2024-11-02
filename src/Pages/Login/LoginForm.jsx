@@ -40,11 +40,12 @@ const LoginForm = () => {
   const [login, { isLoading }] = useLoginMutation();
 
   useEffect(() => {
+    const token = getAuthToken();
+    if (token) navigate("/profile");
     userRef.current.focus();
   }, []);
 
   useEffect(() => {
-    getAuthToken();
     setErrMsg("");
   }, [password, email]);
 
@@ -101,7 +102,7 @@ const LoginForm = () => {
                 id="sign-in-heading"
               >
                 <div className="flex gap-2">
-                  <img src="/src/assets/Website Assets/Logo.png" alt="" />
+                  <img src="/Logo.png" alt="" />
                   <p>SIMS PPOB</p>
                 </div>
               </span>

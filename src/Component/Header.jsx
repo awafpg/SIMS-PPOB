@@ -1,11 +1,10 @@
 import {
-  Link,
   Navbar,
   NavbarBrand,
   NavbarContent,
   NavbarItem,
 } from "@nextui-org/react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
   const location = useLocation();
@@ -22,7 +21,7 @@ const Header = () => {
     <>
       <Navbar>
         <NavbarBrand>
-          <a href="/profile" className="flex items-center">
+          <a to="/profile" className="flex items-center">
             <img src="/Logo.png" className="w-[25px]" />
             <p className="pl-1 text-sm font-bold text-inherit">SIMS PPOB</p>
           </a>
@@ -36,7 +35,7 @@ const Header = () => {
                     match(item) ? "text-red-500 font-bold" : "text-inherit"
                   }`}
                   color="foreground"
-                  href={item.path}
+                  to={item.path}
                 >
                   {item.linkName}
                 </Link>
