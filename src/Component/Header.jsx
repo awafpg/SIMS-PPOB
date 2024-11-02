@@ -13,7 +13,7 @@ const Header = () => {
     else return false;
   };
   const navItem = [
-    { path: "/top-up", linkName: "Top UP" },
+    { path: "/top-up", linkName: "Top Up" },
     { path: "/transaction", linkName: "Transaction" },
     { path: "/account", linkName: "Akun" },
   ];

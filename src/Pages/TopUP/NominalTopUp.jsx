@@ -3,23 +3,31 @@ import { useState } from "react";
 import { BsCash } from "react-icons/bs";
 import { useTopupMutation } from "../../Store/transaction/transactionReducer";
 import { useNavigate } from "react-router-dom";
+import { formatedNumber } from "../../Store/store";
 
 export const NominalTopUp = () => {
   const [topUP, { isLoading }] = useTopupMutation();
   const [topUpAmount, setTopUpAmount] = useState("");
   const navigate = useNavigate();
+  const maxAmount = 1000000;
 
   const handleChange = (e) => {
-    setTopUpAmount(e.target.value);
+    const value = e.target.value.replace(/\./g, ""); // Menghapus titik sebelum penyimpanan
+    const numericValue = value.replace(/\D/g, ""); // Hanya angka
+
+    // Periksa apakah nilai melebihi batas maksimum
+    if (numericValue === "" || parseInt(numericValue, 10) <= maxAmount) {
+      setTopUpAmount(numericValue);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Here you can add logic to handle the top-up (e.g., send the amount to an API)
-    console.log("Top Up Amount:", topUpAmount);
+
     try {
       const result = await topUP({ top_up_amount: topUpAmount }).unwrap();
-      console.log(result);
+
       if (result.status === 0) {
         alert("TOP UP BERHASIL");
       }
@@ -53,16 +61,16 @@ export const NominalTopUp = () => {
           <form onSubmit={handleSubmit}>
             <Input
               radius="none"
-              type="number"
+              type="text"
               className="rounded size-10"
               placeholder="masukan nominal Top Up"
               clearable
-              value={topUpAmount}
+              value={formatedNumber(topUpAmount)}
               onChange={handleChange}
               required
               fullWidth
               step="0.01" // Allows for decimal values
-              startContent={<BsCash className="text-2xl text-default-400 " />}
+              startContent={<BsCash className="text-2xl text-default-400" />}
             />
             <Button
               radius="none"
@@ -84,7 +92,7 @@ export const NominalTopUp = () => {
                 onClick={handleChange}
                 className="bg-white border-2 rounded"
               >
-                Rp. {nomina.nominal}
+                Rp. {formatedNumber(nomina.nominal)}
               </Button>
             ))}
           </div>
@@ -97,7 +105,7 @@ export const NominalTopUp = () => {
                 onClick={handleChange}
                 className="bg-white border-2 rounded"
               >
-                Rp. {nomina.nominal}
+                Rp. {formatedNumber(nomina.nominal)}
               </Button>
             ))}
           </div>
@@ -106,5 +114,3 @@ export const NominalTopUp = () => {
     </div>
   );
 };
-
-// export default NominalTopUp;

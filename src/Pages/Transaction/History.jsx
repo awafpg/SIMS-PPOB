@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useHistoryQuery } from "../../Store/transaction/transactionReducer";
 import { Spinner } from "@nextui-org/react";
+import { formatedNumber } from "../../Store/store";
 
 export const History = () => {
   const formatDate = (dateString) => {
@@ -68,9 +69,9 @@ export const History = () => {
                           : "text-green-400"
                       } text-2xl font-semibold`}
                     >
-                      {transaction.transaction_type === "PAYMENT" ? "-" : "+"}{" "}
+                      {transaction.transaction_type === "PAYMENT" ? "-" : "+"}
                       Rp.
-                      {transaction.total_amount}
+                      {" " + formatedNumber(transaction.total_amount)}
                     </p>
                     <p className="text-[12px]">
                       {formatDate(transaction.created_on)}

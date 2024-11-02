@@ -12,3 +12,7 @@ export const store = configureStore({
     defaultMiddleware().concat(apiSlice.middleware),
   devTools: true,
 });
+
+export const formatedNumber = (number) => {
+  return number.toLocaleString("id-ID");
+};

@@ -3,6 +3,8 @@ import { FiEye } from "react-icons/fi";
 import { useProfileMutation } from "../../Store/membership/membershipReducer";
 import { useEffect, useState } from "react";
 import { useBalanceMutation } from "../../Store/transaction/transactionReducer";
+import { formatedNumber } from "../../Store/store";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const BalanceLayer = () => {
   const [balance, setBalance] = useState("");
@@ -15,7 +17,7 @@ const BalanceLayer = () => {
     try {
       const result = await getProfile().unwrap();
       const resultBalance = await getBalance().unwrap();
-      console.log(resultBalance);
+
       setProfile(result.data);
       setBalance(resultBalance.data);
     } catch (error) {
@@ -49,7 +51,10 @@ const BalanceLayer = () => {
               <CardBody className="flex flex-col gap-2 text-white">
                 <p>Saldo Anda</p>
                 <p className="text-2xl font-bold">
-                  Rp. <span>{visible ? "*******" : balance.balance}</span>
+                  Rp.{" "}
+                  <span>
+                    {visible ? "*******" : formatedNumber(balance.balance)}
+                  </span>
                 </p>
                 <button
                   onClick={() => {
@@ -57,8 +62,16 @@ const BalanceLayer = () => {
                   }}
                   className="flex gap-2 items-center"
                 >
-                  {visible ? "Lihat saldo" : "sembunyikan saldo"}
-                  <FiEye className="text-center size-[13px]" />
+                  {visible ? (
+                    <>
+                      Lihat Saldo <FaEye className="text-center size-[13px]" />
+                    </>
+                  ) : (
+                    <>
+                      Sembunyikan Saldo
+                      <FaEyeSlash className="text-center size-[13px]" />
+                    </>
+                  )}
                 </button>
               </CardBody>
             </Card>
